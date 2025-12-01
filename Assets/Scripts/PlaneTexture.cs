@@ -3,6 +3,8 @@ using UnityEngine;
 public class PlaneTexture : MonoBehaviour
 {
     public Renderer textureRenderer;
+    public MeshFilter meshFilter;
+    public MeshRenderer meshRenderer;
     public void DrawTexture(Texture2D texture) 
     {      
 
@@ -10,15 +12,11 @@ public class PlaneTexture : MonoBehaviour
         textureRenderer.transform.localScale = new Vector3(texture.width, 1, texture.height); 
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void DrawMesh(MeshData meshData, Texture2D texture) 
     {
-        
+        meshFilter.sharedMesh = meshData.CreateMesh();
+        meshRenderer.sharedMaterial.mainTexture = texture; 
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+
 }
