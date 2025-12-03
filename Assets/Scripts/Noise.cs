@@ -1,10 +1,15 @@
+using System.Buffers.Text;
+using Unity.VisualScripting;
 using UnityEngine;
-using System.Collections;
+using static UnityEngine.Rendering.DebugUI;
 
 public static class Noise 
 {
-   public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset) 
+   public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
+
+        //Make a 2D array for noise values, have random values using a seed and then generates random positional offsets for each octave of the noise
+
         float[,] noiseMap = new float[mapWidth, mapHeight];
 
         System.Random rng = new System.Random(seed);
@@ -12,6 +17,7 @@ public static class Noise
 
         for(int i = 0; i < octaves; i++) 
         {
+            // Large random offsets to avoid symmetry in Perlin noise sampling
             float offSetX = rng.Next(-100000, 100000) + offset.x;
             float offSetY = rng.Next(-100000, 100000) + offset.y;
             octaveOffsets[i] = new Vector2(offSetX, offSetY);
@@ -22,9 +28,11 @@ public static class Noise
             scale = 0.0001f; 
         }
 
+        // track the maximum and minimum values for the noise height values
         float maxNoiseHeight = float.MinValue;
         float minNoiseHeight = float.MaxValue;
 
+        
         float halfWidth = mapWidth / 2f;
         float halfHeight = mapHeight / 2f;   
 
@@ -39,6 +47,7 @@ public static class Noise
 
                 for (int i = 0; i < octaves; i++)
                 {
+                    // Calculate the coordinates to sample from Perlin noise
                     float sampleX = (x-halfWidth) / scale * frequency + octaveOffsets[i].x;
                     float sampleY = (y - halfHeight) / scale * frequency + octaveOffsets[i].y;
 
@@ -48,7 +57,7 @@ public static class Noise
                     amplitude *= persistance;
                     frequency *= lacunarity; 
                 }
-
+                // After procesing the octaves, update the maximum or minimum of the noise height 
                 if(noiseHeight > maxNoiseHeight) 
                 {
                     maxNoiseHeight = noiseHeight;
@@ -67,6 +76,7 @@ public static class Noise
         {
             for (int x = 0; x < mapWidth; x++)
             {
+                //Normalize noise map to 0 to 1 based on the global min / max values
                 noiseMap[x,y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, noiseMap[x,y]);
             }
         }
