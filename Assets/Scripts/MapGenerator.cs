@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI; 
 
 
 public class MapGenerator : MonoBehaviour
@@ -22,19 +23,30 @@ public class MapGenerator : MonoBehaviour
 
     public bool autoUpdate;    
 
-    public RegionColors regionsColors; 
+    public RegionColors regionsColors;
+    private int regionIndex; 
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public Slider heightSlider;
+    public float heightSliderValue; 
+
+    private void Awake()
     {
-        GenerateMap(); 
+        GeneratingNewMap(1);
+
+        heightSlider.value = (meshHeightMultiplier + 100) / -400;
+        heightSliderValue = heightSlider.value; 
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if(heightSlider.value != heightSliderValue) 
+        {
+            meshHeightMultiplier = (heightSliderValue * -400) - 100;
+            heightSliderValue = heightSlider.value;
+            GenerateMap(); 
+        }
     }
+
 
     public void GenerateMap() 
     {
@@ -46,13 +58,13 @@ public class MapGenerator : MonoBehaviour
         {
             for(int x = 0; x < mapChunkSize; x++) 
             {
-                float currentHeight = noiseMap[x, y];
+                float currentHeight = noiseMap[x, y];                
 
-                for (int i = 0; i < regionsColors.regions.Length; i++) 
+                for (int i = 0; i < regionsColors.currentTerrain.Length; i++) 
                 {
-                    if(currentHeight <= regionsColors.regions[i].height) 
+                    if(currentHeight <= regionsColors.currentTerrain[i].height) 
                     {
-                        colorMap[y * mapChunkSize + x] = regionsColors.regions[i].color;
+                        colorMap[y * mapChunkSize + x] = regionsColors.currentTerrain[i].color;
                         break;
                     }
 
@@ -67,6 +79,51 @@ public class MapGenerator : MonoBehaviour
         display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail), TextureGenerator.TextureFromColorMap(colorMap, mapChunkSize, mapChunkSize)); 
         
     }
+
+    private void GeneratingNewMap(int num) 
+    {
+        switch (num) 
+        {
+            case 1:
+                regionsColors.ChangeIslandTerrain();
+                regionIndex = 1;
+                break;
+            case 2:
+                regionsColors.ChangeVolcanicTerrain();
+                regionIndex = 2;
+                break;
+            case 3:
+                regionsColors.ChangeCanyonTerrain();
+                regionIndex = 3;
+                break;
+            default:
+                regionsColors.ChangeIslandTerrain();
+                regionIndex = 1; 
+                break;
+
+        }
+
+        seed++;
+        offset = new Vector2(Random.Range(-100, 101), Random.Range(-100, 101)); 
+        GenerateMap();
+
+    }
+
+    public void ChangeToIslandAction() 
+    {
+        GeneratingNewMap(1);
+    }
+
+    public void ChangeToVolcanic() 
+    {
+        GeneratingNewMap(2);
+    }
+
+    public void ChangeToCanyon() 
+    {
+        GeneratingNewMap(3);     
+    }
+
 
     private void OnValidate()
     {
